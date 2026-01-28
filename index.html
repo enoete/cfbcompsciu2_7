@@ -691,6 +691,18 @@
             cursor: default;
         }
 
+        .matching-item.wrong-match {
+            border-color: #f56565;
+            background: rgba(245, 101, 101, 0.3);
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
         .quiz-results {
             display: none;
             text-align: center;
@@ -4940,6 +4952,7 @@ echo "$(date): Started my_task.sh with PID $!" >> ~/task_log.txt</code></pre>
                     <div class="quiz-question" data-type="matching">
                         <span class="question-type">Matching</span>
                         <h4>26. Match the OS function with its description:</h4>
+                        <p style="color: #9ae6b4; font-style: italic; margin-bottom: 15px;">💡 Instructions: Click one item from the left column, then click its match from the right column. Correct matches will turn green and stay matched!</p>
                         <div class="matching-container" id="matching-q26">
                             <div class="matching-column">
                                 <h5>Functions</h5>
@@ -5397,6 +5410,7 @@ echo "$(date): Started my_task.sh with PID $!" >> ~/task_log.txt</code></pre>
                 .querySelectorAll('.matching-item').forEach(item => {
                     if (!item.classList.contains('matched')) {
                         item.classList.remove('selected');
+                        item.classList.remove('wrong-match');
                     }
                 });
             
@@ -5409,14 +5423,25 @@ echo "$(date): Started my_task.sh with PID $!" >> ~/task_log.txt</code></pre>
                 const rightMatch = selectedMatches.right.dataset.match;
                 
                 if (leftMatch === rightMatch) {
+                    // Correct match!
                     selectedMatches.left.classList.remove('selected');
                     selectedMatches.right.classList.remove('selected');
                     selectedMatches.left.classList.add('matched');
                     selectedMatches.right.classList.add('matched');
                     matchedPairs.push(leftMatch);
+                    selectedMatches = { left: null, right: null };
+                } else {
+                    // Wrong match - show feedback briefly
+                    selectedMatches.left.classList.add('wrong-match');
+                    selectedMatches.right.classList.add('wrong-match');
+                    
+                    // Keep selections visible for 800ms so user can see what they tried
+                    setTimeout(() => {
+                        if (selectedMatches.left) selectedMatches.left.classList.remove('selected', 'wrong-match');
+                        if (selectedMatches.right) selectedMatches.right.classList.remove('selected', 'wrong-match');
+                        selectedMatches = { left: null, right: null };
+                    }, 800);
                 }
-                
-                selectedMatches = { left: null, right: null };
             }
             updateProgress();
         }
@@ -5527,7 +5552,7 @@ echo "$(date): Started my_task.sh with PID $!" >> ~/task_log.txt</code></pre>
                     btn.classList.remove('selected', 'correct', 'incorrect');
                 });
                 q.querySelectorAll('.matching-item').forEach(item => {
-                    item.classList.remove('selected', 'matched');
+                    item.classList.remove('selected', 'matched', 'wrong-match');
                 });
                 q.querySelector('.feedback').className = 'feedback';
                 q.querySelector('.feedback').textContent = '';
